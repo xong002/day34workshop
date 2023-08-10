@@ -15,7 +15,7 @@ export class WeatherComponent implements OnInit, OnDestroy {
 
   model = new Weather('Singapore', 0, 0, 0, '', 0, 0);
   OPEN_WEATHER_API_KEY = "476e23fe1116f4e69d2a3e68672604e1";
-  // subscription!: Subscription;
+  subscription$!: Subscription;
 
   constructor(
     private fb: FormBuilder,
@@ -26,28 +26,47 @@ export class WeatherComponent implements OnInit, OnDestroy {
     console.log('Search weather');
     this.city = this.formGroup.value['city'];
     console.log(this.city);
-    this.weatherService.getWeather(this.city, this.OPEN_WEATHER_API_KEY)
-      .then((data) => {
-        this.model = new Weather(
-          this.city, 
-          data.main.temp,
-          data.main.pressure,
-          data.main.humidity,
-          data.weather[0].description,
-          data.wind.speed,
-          data.wind.deg
-        )
-      })
-      .catch((error) => {
-        console.error(error);
-      })
+    // Promise method
+    // this.weatherService.getWeather(this.city, this.OPEN_WEATHER_API_KEY)
+    //   .then((data) => {
+    //     this.model = new Weather(
+    //       this.city, 
+    //       data.main.temp,
+    //       data.main.pressure,
+    //       data.main.humidity,
+    //       data.weather[0].description,
+    //       data.wind.speed,
+    //       data.wind.deg
+    //     )
+    //   })
+    //   .catch((error) => {
+    //     console.error(error);
+    //   })
+    
+    // Subscription(Observable) method
+    this.subscription$ = this.weatherService
+    .getWeatherUsingObservable(this.city, this.OPEN_WEATHER_API_KEY)
+    .subscribe((data) => {
+      console.log("Using subscribe method")
+      this.model = new Weather(
+        this.city, 
+        data.main.temp,
+        data.main.pressure,
+        data.main.humidity,
+        data.weather[0].description,
+        data.wind.speed,
+        data.wind.deg
+      )
+    })
   }
 
   ngOnInit(): void {
     this.formGroup = this.createForm();
   }
   
-  ngOnDestroy(): void {}
+  ngOnDestroy(): void {
+    this.subscription$.unsubscribe();
+  }
 
   private createForm(): FormGroup {
     return this.fb.group({
